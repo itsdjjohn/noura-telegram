@@ -1,0 +1,46 @@
+/* NOURA Beta 0.6 — Premium mobile navigation */
+:root{--nav-bg:rgba(13,16,19,.88);--nav-line:rgba(255,255,255,.09);--nav-green:#b8ff5c}
+
+/* Main bottom navigation */
+.tabs{bottom:max(10px,env(safe-area-inset-bottom));width:min(calc(100% - 22px),720px);z-index:60}
+.premium-tabs{position:relative;overflow:visible;padding:7px 8px 8px;background:linear-gradient(180deg,rgba(24,28,33,.91),rgba(12,15,18,.95));backdrop-filter:blur(28px) saturate(1.35);-webkit-backdrop-filter:blur(28px) saturate(1.35);border:1px solid var(--nav-line);border-radius:25px;box-shadow:0 20px 60px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.045);grid-template-columns:repeat(4,1fr);gap:5px}
+.premium-tabs:before{content:"";position:absolute;left:18%;right:18%;top:-1px;height:1px;background:linear-gradient(90deg,transparent,rgba(184,255,92,.32),transparent);opacity:.75}
+.tab{position:relative;min-height:54px;border-radius:18px;padding:7px 6px 6px;gap:3px;transition:transform .24s cubic-bezier(.22,.8,.2,1),background .24s ease,color .24s ease,box-shadow .24s ease}
+.tab span{font-size:18px;line-height:1;transform:translateY(1px);transition:transform .24s cubic-bezier(.22,.8,.2,1),color .24s ease,text-shadow .24s ease}
+.tab small{font-size:9px;font-weight:760;letter-spacing:.015em;transition:color .24s ease}
+.tab:hover{color:#d8dde2;background:rgba(255,255,255,.028)}
+.tab:active{transform:scale(.95)}
+.tab.active{background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.035));color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.tab.active:after{content:"";position:absolute;bottom:4px;left:50%;width:18px;height:2px;border-radius:999px;background:var(--nav-green);transform:translateX(-50%);box-shadow:0 0 12px rgba(184,255,92,.5)}
+.tab.active span{color:var(--nav-green);transform:translateY(-1px) scale(1.08);text-shadow:0 0 16px rgba(184,255,92,.22)}
+.tab.active small{color:#eef7e5}
+
+/* Plan + Insights become an integrated secondary dock */
+.noura-launchers{position:fixed;left:50%;right:auto;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 72px);z-index:59;transform:translateX(-50%);display:flex;flex-direction:row;align-items:center;justify-content:center;gap:6px;padding:5px;background:rgba(12,15,18,.82);backdrop-filter:blur(24px) saturate(1.25);-webkit-backdrop-filter:blur(24px) saturate(1.25);border:1px solid rgba(255,255,255,.075);border-radius:999px;box-shadow:0 14px 40px rgba(0,0,0,.35)}
+.insights-launcher{position:relative;display:flex;align-items:center;justify-content:center;gap:7px;min-width:92px;padding:8px 12px;border-radius:999px;background:transparent;border:1px solid transparent;box-shadow:none;color:#abb2b9;font-size:9px;font-weight:820;letter-spacing:.025em;transition:transform .22s cubic-bezier(.22,.8,.2,1),background .22s ease,color .22s ease,border-color .22s ease}
+.insights-launcher:before{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.055);color:#cbd1d6;font-size:10px;transition:background .22s ease,color .22s ease,transform .22s ease}
+.plan-launcher{background:rgba(184,255,92,.07);border-color:rgba(184,255,92,.12);color:#e1f7c7}
+.plan-launcher:before{background:var(--nav-green);color:#090c0d;box-shadow:0 0 16px rgba(184,255,92,.16)}
+.insights-launcher:hover{transform:translateY(-1px);background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.08);color:#fff}
+.insights-launcher:active{transform:scale(.96)}
+.insights-launcher:hover:before{transform:scale(1.05)}
+
+/* Reserve enough content space for the two-level nav */
+.app-shell{padding-bottom:154px}
+
+@media(max-width:430px){
+ .tabs{width:calc(100% - 18px);bottom:max(8px,env(safe-area-inset-bottom))}
+ .premium-tabs{border-radius:23px;padding:6px 7px 7px;gap:3px}
+ .tab{min-height:51px;border-radius:16px;padding:6px 4px}
+ .tab span{font-size:17px}.tab small{font-size:8.5px}
+ .noura-launchers{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 67px);gap:4px;padding:4px}
+ .insights-launcher{min-width:84px;padding:7px 10px;font-size:8.5px;gap:6px}
+ .insights-launcher:before{width:17px;height:17px;font-size:9px}
+ .app-shell{padding-bottom:146px}
+}
+
+@supports(padding:max(0px)){
+ .premium-tabs{padding-bottom:max(8px,calc(env(safe-area-inset-bottom)*.12 + 7px))}
+}
+
+@media(prefers-reduced-motion:reduce){.tab,.tab span,.insights-launcher,.insights-launcher:before{transition:none}}
