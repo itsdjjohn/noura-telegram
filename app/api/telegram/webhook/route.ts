@@ -28,13 +28,12 @@ export async function POST(request: NextRequest) {
     const firstName = update.message?.from?.first_name || "";
     await telegramApi("sendMessage", {
       chat_id: chatId,
-      text: `Hola${firstName ? `, ${firstName}` : ""} 👋\n\nBienvenido a NOURA. Lleva tus comidas, macros, agua y pronto tus datos de WHOOP desde Telegram.`,
+      text: `Hola${firstName ? `, ${firstName}` : ""} 👋\n\nBienvenido a NOURA. Lleva tus comidas, macros, agua y conecta WHOOP desde Telegram.`,
       reply_markup: {
         inline_keyboard: [[
-          {
-            text: "Abrir NOURA",
-            web_app: { url: getAppUrl() },
-          },
+          { text: "Abrir NOURA", web_app: { url: getAppUrl() } },
+        ], [
+          { text: "Conectar WHOOP", web_app: { url: `${getAppUrl()}/whoop` } },
         ]],
       },
     });
@@ -43,18 +42,21 @@ export async function POST(request: NextRequest) {
       chat_id: chatId,
       text: "Abre tu dashboard de NOURA:",
       reply_markup: {
-        inline_keyboard: [[
-          {
-            text: "Abrir NOURA",
-            web_app: { url: getAppUrl() },
-          },
-        ]],
+        inline_keyboard: [[{ text: "Abrir NOURA", web_app: { url: getAppUrl() } }]],
+      },
+    });
+  } else if (text === "/whoop") {
+    await telegramApi("sendMessage", {
+      chat_id: chatId,
+      text: "Conecta o revisa tus datos de WHOOP:",
+      reply_markup: {
+        inline_keyboard: [[{ text: "WHOOP × NOURA", web_app: { url: `${getAppUrl()}/whoop` } }]],
       },
     });
   } else {
     await telegramApi("sendMessage", {
       chat_id: chatId,
-      text: "Por ahora soy tu acceso a NOURA. Usa /app o el botón del menú para abrir la Mini App.",
+      text: "Usa /app para abrir NOURA o /whoop para conectar y revisar WHOOP.",
     });
   }
 
