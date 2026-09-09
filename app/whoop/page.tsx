@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 type Summary = {
   connected: boolean;
@@ -46,7 +47,17 @@ function hours(ms?: number) {
   return `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;
 }
 
+function friendlyOAuthError(value: string | null) {
+  if (!value) return null;
+  if (value === "oauth_state") return "WHOOP devolvió la autorización, pero la validación de seguridad de la sesión falló. Intenta conectar nuevamente desde este mismo navegador.";
+  if (/redirect/i.test(value)) return `WHOOP rechazó la Redirect URI: ${value}`;
+  if (/client/i.test(value) || /credential/i.test(value)) return `WHOOP rechazó las credenciales de la aplicación: ${value}`;
+  return `No se pudo completar la conexión con WHOOP: ${value}`;
+}
+
 export default function WhoopPage() {
+  const searchParams = useSearchParams();
+  const callbackError = friendlyOAuthError(searchParams.get("error"));
   const [data, setData] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -81,7 +92,8 @@ export default function WhoopPage() {
         <div className="kicker">WHOOP × NOURA</div>
         <h1>Conecta tu recuperación con tu nutrición.</h1>
         <p className="muted">NOURA leerá Recovery, Sleep, Strain y Workouts para adaptar tus recomendaciones. La conexión usa OAuth oficial de WHOOP.</p>
-        {data?.error && <div className="notice">{data.error}</div>}
+        {callbackError && <div className="notice"><strong>Error de conexión</strong><br />{callbackError}</div>}
+        {!callbackError && data?.error && <div className="notice">{data.error}</div>}
         <a className="btn btn-primary" href="/api/whoop/connect">Conectar WHOOP</a>
         <a className="btn" href="/">Volver a NOURA</a>
       </main>
