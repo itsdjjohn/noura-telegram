@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAppUrl, telegramApi } from "@/lib/telegram-bot";
 
+const SUPABASE_TELEGRAM_WEBHOOK_URL =
+  process.env.SUPABASE_TELEGRAM_WEBHOOK_URL ||
+  "https://ydggnanoofeureprmaqn.supabase.co/functions/v1/telegram-webhook";
+
 async function runSetup(request: NextRequest) {
   const setupSecret = process.env.TELEGRAM_SETUP_SECRET;
   if (!setupSecret) return NextResponse.json({ ok: false, error: "TELEGRAM_SETUP_SECRET is not configured" }, { status: 503 });
@@ -12,7 +16,7 @@ async function runSetup(request: NextRequest) {
 
   try {
     const appUrl = getAppUrl();
-    const webhookUrl = `${appUrl}/api/telegram/webhook`;
+    const webhookUrl = SUPABASE_TELEGRAM_WEBHOOK_URL;
     const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
     const webhookBody: Record<string, unknown> = { url: webhookUrl, allowed_updates: ["message"], drop_pending_updates: true };
     if (webhookSecret) webhookBody.secret_token = webhookSecret;
