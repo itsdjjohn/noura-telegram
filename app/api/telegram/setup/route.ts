@@ -25,6 +25,7 @@ async function runSetup(request: NextRequest) {
       commands: [
         { command: "start", description: "Abrir NOURA" },
         { command: "today", description: "Ver tu resumen de hoy" },
+        { command: "coach", description: "Abrir recomendaciones de NOURA Coach" },
         { command: "log", description: "Registrar comida con Smart Log" },
         { command: "water", description: "Registrar hidratación" },
         { command: "whoop", description: "Ver WHOOP × NOURA" },
