@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
+import "./motion.css";
 
 export const metadata: Metadata = {
   title: "NOURA",
@@ -11,7 +12,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#0c0d0f",
+  themeColor: "#080a0c",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
