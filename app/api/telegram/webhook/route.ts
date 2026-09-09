@@ -9,54 +9,70 @@ type TelegramUpdate = {
   };
 };
 
+function assistantUrl(text?: string) {
+  const base = `${getAppUrl()}/assistant`;
+  return text ? `${base}?text=${encodeURIComponent(text)}` : base;
+}
+
 export async function POST(request: NextRequest) {
   const expectedSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
   if (expectedSecret) {
     const received = request.headers.get("x-telegram-bot-api-secret-token");
-    if (received !== expectedSecret) {
-      return NextResponse.json({ ok: false }, { status: 401 });
-    }
+    if (received !== expectedSecret) return NextResponse.json({ ok: false }, { status: 401 });
   }
 
   const update = (await request.json()) as TelegramUpdate;
   const chatId = update.message?.chat?.id;
   const text = update.message?.text?.trim() || "";
-
   if (!chatId) return NextResponse.json({ ok: true });
 
   if (text.startsWith("/start")) {
     const firstName = update.message?.from?.first_name || "";
     await telegramApi("sendMessage", {
       chat_id: chatId,
-      text: `Hola${firstName ? `, ${firstName}` : ""} 👋\n\nBienvenido a NOURA. Lleva tus comidas, macros, agua y conecta WHOOP desde Telegram.`,
+      text: `Hola${firstName ? `, ${firstName}` : ""} 👋\n\nNOURA ya puede ayudarte con nutrición, WHOOP y registro inteligente de comidas.`,
       reply_markup: {
-        inline_keyboard: [[
-          { text: "Abrir NOURA", web_app: { url: getAppUrl() } },
-        ], [
-          { text: "Conectar WHOOP", web_app: { url: `${getAppUrl()}/whoop` } },
-        ]],
+        inline_keyboard: [
+          [{ text: "Abrir NOURA", web_app: { url: getAppUrl() } }],
+          [{ text: "Registrar comida con texto", web_app: { url: assistantUrl() } }],
+          [{ text: "WHOOP × NOURA", web_app: { url: `${getAppUrl()}/whoop` } }],
+        ],
       },
     });
-  } else if (text === "/app") {
+  } else if (text === "/app" || text === "/today") {
     await telegramApi("sendMessage", {
       chat_id: chatId,
-      text: "Abre tu dashboard de NOURA:",
-      reply_markup: {
-        inline_keyboard: [[{ text: "Abrir NOURA", web_app: { url: getAppUrl() } }]],
-      },
+      text: text === "/today" ? "Abre tu resumen de hoy en NOURA:" : "Abre tu dashboard de NOURA:",
+      reply_markup: { inline_keyboard: [[{ text: "Abrir dashboard", web_app: { url: getAppUrl() } }]] },
     });
   } else if (text === "/whoop") {
     await telegramApi("sendMessage", {
       chat_id: chatId,
-      text: "Conecta o revisa tus datos de WHOOP:",
-      reply_markup: {
-        inline_keyboard: [[{ text: "WHOOP × NOURA", web_app: { url: `${getAppUrl()}/whoop` } }]],
-      },
+      text: "Revisa Recovery, Sleep, HRV y Strain:",
+      reply_markup: { inline_keyboard: [[{ text: "WHOOP × NOURA", web_app: { url: `${getAppUrl()}/whoop` } }]] },
     });
-  } else {
+  } else if (text === "/log" || text === "/meal") {
     await telegramApi("sendMessage", {
       chat_id: chatId,
-      text: "Usa /app para abrir NOURA o /whoop para conectar y revisar WHOOP.",
+      text: "Escribe tu comida directamente aquí, o abre el Smart Log.",
+      reply_markup: { inline_keyboard: [[{ text: "Abrir Smart Log", web_app: { url: assistantUrl() } }]] },
+    });
+  } else if (text === "/water") {
+    await telegramApi("sendMessage", {
+      chat_id: chatId,
+      text: "La hidratación se registra dentro de NOURA para mantenerla sincronizada con tu dispositivo.",
+      reply_markup: { inline_keyboard: [[{ text: "Registrar agua", web_app: { url: getAppUrl() } }]] },
+    });
+  } else if (text.startsWith("/")) {
+    await telegramApi("sendMessage", {
+      chat_id: chatId,
+      text: "Comandos disponibles: /today, /log, /water, /whoop y /app.",
+    });
+  } else if (text.length >= 3) {
+    await telegramApi("sendMessage", {
+      chat_id: chatId,
+      text: `Entendí esto como una comida:\n\n“${text.slice(0, 220)}”\n\nAbre NOURA para estimar macros y confirmar el registro.`,
+      reply_markup: { inline_keyboard: [[{ text: "Analizar comida →", web_app: { url: assistantUrl(text) } }]] },
     });
   }
 
@@ -64,5 +80,5 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  return NextResponse.json({ ok: true, service: "noura-telegram-webhook" });
+  return NextResponse.json({ ok: true, service: "noura-telegram-webhook", version: "0.3" });
 }
