@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import NouraClient from "./noura-client";
 import "./globals.css";
 import "./motion.css";
 import "./insights-launcher.css";
@@ -22,10 +23,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="es">
       <body>
         {children}
-        <div className="noura-launchers">
-          <a className="insights-launcher plan-launcher" href="/plan">Plan</a>
-          <a className="insights-launcher" href="/insights">Insights</a>
-        </div>
+        <NouraClient />
+        <nav className="noura-launchers" aria-label="Accesos rápidos NOURA">
+          <a className="insights-launcher plan-launcher" href="/plan"><span>Plan</span></a>
+          <a className="insights-launcher coach-launcher" href="/coach"><span>Coach</span></a>
+          <a className="insights-launcher" href="/insights"><span>Insights</span></a>
+          <a className="insights-launcher profile-launcher" href="/profile"><span>Perfil</span></a>
+        </nav>
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
       </body>
     </html>
