@@ -7,7 +7,7 @@ const WEBHOOK_URL =
   process.env.SUPABASE_TELEGRAM_WEBHOOK_URL ||
   "https://ydggnanoofeureprmaqn.supabase.co/functions/v1/telegram-webhook";
 
-export async function POST() {
+async function runSetup() {
   try {
     const appUrl = getAppUrl();
     const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
@@ -40,3 +40,6 @@ export async function POST() {
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }
+
+export async function GET() { return runSetup(); }
+export async function POST() { return runSetup(); }
