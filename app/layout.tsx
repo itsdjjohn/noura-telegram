@@ -21,7 +21,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="es">
       <body>
         {children}
-        <a className="insights-launcher" href="/insights">Insights</a>
+        <div className="noura-launchers">
+          <a className="insights-launcher plan-launcher" href="/plan">Plan</a>
+          <a className="insights-launcher" href="/insights">Insights</a>
+        </div>
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
       </body>
     </html>
