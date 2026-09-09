@@ -8,6 +8,12 @@ export async function GET(request: NextRequest) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
 
   if (!code || !state || !expected || state !== expected) {
+    console.error("WHOOP OAuth callback rejected", {
+      hasCode: Boolean(code),
+      hasState: Boolean(state),
+      hasExpectedState: Boolean(expected),
+      stateMatches: Boolean(state && expected && state === expected),
+    });
     return NextResponse.redirect(`${appUrl}/whoop?error=oauth_state`);
   }
 
@@ -24,7 +30,9 @@ export async function GET(request: NextRequest) {
     response.cookies.delete("whoop_oauth_state");
     return response;
   } catch (error) {
-    const message = encodeURIComponent(error instanceof Error ? error.message : "oauth_failed");
+    const rawMessage = error instanceof Error ? error.message : "oauth_failed";
+    console.error("WHOOP token exchange failed", { message: rawMessage });
+    const message = encodeURIComponent(rawMessage);
     return NextResponse.redirect(`${appUrl}/whoop?error=${message}`);
   }
 }
