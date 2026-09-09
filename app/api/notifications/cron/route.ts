@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { generateNouraText } from "@/lib/noura-ai";
 import { getAppUrl, telegramApi } from "@/lib/telegram-bot";
 
 const SUPABASE_URL = "https://ydggnanoofeureprmaqn.supabase.co";
@@ -31,12 +32,6 @@ async function rpc<T>(name: string, body: Record<string, unknown>): Promise<T> {
   const payload = await response.json().catch(() => null);
   if (!response.ok) throw new Error(payload?.message || payload?.hint || `Supabase ${response.status}`);
   return payload as T;
-}
-
-function extractText(body: any) {
-  if (typeof body?.output_text === "string") return body.output_text;
-  const chunks = Array.isArray(body?.output) ? body.output.flatMap((o: any) => Array.isArray(o?.content) ? o.content : []) : [];
-  return chunks.map((c: any) => c?.text || "").filter(Boolean).join("\n");
 }
 
 function skipReason(job: Job) {
@@ -75,22 +70,14 @@ function fallback(job: Job) {
 }
 
 async function generateMessage(job: Job) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return { text: fallback(job), source: "local" };
-
   const prompt = `Eres NOURA, un coach de bienestar y nutrición cotidiana. Escribe UNA notificación push para Telegram en español, natural y breve (máximo 380 caracteres). Debe sonar personalizada, útil y premium, no robótica. Usa solamente los datos proporcionados. No diagnostiques, no recomiendes medicamentos y no hagas afirmaciones clínicas. No uses markdown. Máximo un emoji si realmente aporta. Tipo de notificación: ${job.notification_type}. Nombre: ${job.first_name || "usuario"}. Contexto: ${JSON.stringify(job.context)}.`;
   try {
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: process.env.NOURA_AI_MODEL || "gpt-5.6-luna", input: prompt, max_output_tokens: 180 }),
-      cache: "no-store",
-    });
-    const body = await response.json();
-    if (!response.ok) throw new Error(body?.error?.message || `OpenAI ${response.status}`);
-    const text = extractText(body).trim().replace(/^['\"]|['\"]$/g, "");
-    if (!text) throw new Error("Empty AI notification");
-    return { text: text.slice(0, 480), source: "ai" };
+    const generated = await generateNouraText(prompt, 180);
+    if (!generated) return { text: fallback(job), source: "local" };
+    return {
+      text: generated.text.trim().replace(/^['\"]|['\"]$/g, "").slice(0, 480),
+      source: `${generated.provider}:${generated.model}`,
+    };
   } catch (error) {
     console.error("NOURA notification AI fallback", error);
     return { text: fallback(job), source: "local" };
