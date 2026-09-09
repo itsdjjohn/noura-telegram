@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 type Summary = {
@@ -55,7 +55,7 @@ function friendlyOAuthError(value: string | null) {
   return `No se pudo completar la conexión con WHOOP: ${value}`;
 }
 
-export default function WhoopPage() {
+function WhoopContent() {
   const searchParams = useSearchParams();
   const callbackError = friendlyOAuthError(searchParams.get("error"));
   const [data, setData] = useState<Summary | null>(null);
@@ -154,5 +154,13 @@ export default function WhoopPage() {
         <button className="btn btn-danger" onClick={disconnect}>Desconectar WHOOP</button>
       </div>
     </main>
+  );
+}
+
+export default function WhoopPage() {
+  return (
+    <Suspense fallback={<main className="onboarding"><div className="logo-big">N</div><p className="muted">Cargando WHOOP…</p></main>}>
+      <WhoopContent />
+    </Suspense>
   );
 }
