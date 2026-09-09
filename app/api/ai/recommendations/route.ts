@@ -33,7 +33,7 @@ export async function POST(request:NextRequest){
     const body=await r.json();
     if(!r.ok)throw new Error(body?.error?.message||`OpenAI ${r.status}`);
     const text=extractText(body).trim();
-    const clean=text.replace(/^```json\s*/i,"").replace(/```$/,"\").trim();
+    const clean=text.replace(/^```json\s*/i,"").replace(/```$/i,"").trim();
     const parsed=JSON.parse(clean);
     return NextResponse.json({source:"ai",headline:String(parsed.headline||"Tu enfoque de hoy"),summary:String(parsed.summary||""),actions:Array.isArray(parsed.actions)?parsed.actions.slice(0,4).map(String):[],note:String(parsed.note||"Recomendación de bienestar general.")});
   }catch(error){
