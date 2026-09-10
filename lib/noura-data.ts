@@ -16,6 +16,16 @@ function deviceToken(){try{return localStorage.getItem(DEVICE_KEY)||""}catch{ret
 function setDeviceToken(token:string){try{localStorage.setItem(DEVICE_KEY,token)}catch{}}
 function legacyStore(){try{const raw=localStorage.getItem(LEGACY_KEY);return raw?JSON.parse(raw):null}catch{return null}}
 function clearLegacy(){try{localStorage.removeItem(LEGACY_KEY)}catch{}}
+function sleep(ms:number){return new Promise(resolve=>window.setTimeout(resolve,ms))}
+async function waitForTelegramInitData(timeoutMs=2500){
+  const started=Date.now();
+  while(Date.now()-started<timeoutMs){
+    const initData=window.Telegram?.WebApp?.initData||"";
+    if(initData)return initData;
+    await sleep(100);
+  }
+  return window.Telegram?.WebApp?.initData||"";
+}
 
 async function call(action:string,body:Record<string,unknown>={},token=deviceToken()){
   const initData=typeof window!=="undefined"?window.Telegram?.WebApp?.initData||"":"";
@@ -28,7 +38,7 @@ async function call(action:string,body:Record<string,unknown>={},token=deviceTok
 export async function bootstrapNoura():Promise<NouraState>{
   const token=deviceToken();
   if(token){try{const r=await call("state",{},token);return r.state as NouraState}catch{}}
-  const initData=window.Telegram?.WebApp?.initData||"";
+  const initData=await waitForTelegramInitData();
   if(!initData)throw new Error("auth_required");
   const legacy=legacyStore();
   const r=await call("bootstrap",{initData,legacyStore:legacy},"");
