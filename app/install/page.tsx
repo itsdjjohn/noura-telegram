@@ -3,11 +3,14 @@
 import { useEffect,useState } from "react";
 import { createInstallLink, exchangeInstallCode } from "@/lib/noura-data";
 
+type HomeScreenStatus="unsupported"|"unknown"|"added"|"missed";
 type TelegramWindow = Window & {
   Telegram?: {
     WebApp?: {
       initData?: string;
       openLink?: (url:string)=>void;
+      addToHomeScreen?: ()=>void;
+      checkHomeScreenStatus?: (callback:(status:HomeScreenStatus)=>void)=>void;
     };
   };
 };
@@ -16,13 +19,14 @@ export default function InstallPage(){
  const [status,setStatus]=useState("Preparando NOURA para este dispositivo…");
  const [installUrl,setInstallUrl]=useState("");
  const [insideTelegram,setInsideTelegram]=useState(false);
+ const [homeStatus,setHomeStatus]=useState<HomeScreenStatus|null>(null);
 
  useEffect(()=>{(async()=>{
    const code=new URLSearchParams(window.location.search).get("code")||"";
    if(code){
      try{
        await exchangeInstallCode(code);
-       setStatus("Dispositivo vinculado ✓ Ya puedes instalar NOURA en este navegador.");
+       setStatus("Dispositivo vinculado ✓ NOURA ya está conectada con tu cuenta.");
      }catch{
        setStatus("Este enlace expiró o ya fue utilizado. Genera uno nuevo desde Telegram.");
      }
@@ -30,20 +34,35 @@ export default function InstallPage(){
    }
 
    const tgWindow=window as TelegramWindow;
-   if(tgWindow.Telegram?.WebApp?.initData){
+   const webApp=tgWindow.Telegram?.WebApp;
+   if(webApp?.initData){
      setInsideTelegram(true);
+     setStatus("Puedes añadir NOURA al inicio directamente desde Telegram.");
+     if(webApp.checkHomeScreenStatus){
+       try{webApp.checkHomeScreenStatus((s)=>setHomeStatus(s));}catch{}
+     }
      try{
-       setStatus("Cuenta vinculada. Ahora abre NOURA fuera de Telegram para instalarla.");
        const url=await createInstallLink();
        setInstallUrl(url);
-     }catch{
-       setStatus("No pude preparar el enlace. Abre primero NOURA desde /start y vuelve a intentarlo.");
-     }
+     }catch{}
      return;
    }
 
    setStatus("Abre esta opción desde el bot de NOURA en Telegram para vincular tu cuenta.");
  })()},[]);
+
+ function addNativeShortcut(){
+   const webApp=(window as TelegramWindow).Telegram?.WebApp;
+   if(webApp?.addToHomeScreen){
+     webApp.addToHomeScreen();
+     setStatus("Telegram está preparando el acceso directo de NOURA…");
+     window.setTimeout(()=>{
+       try{webApp.checkHomeScreenStatus?.((s)=>{setHomeStatus(s);if(s==="added")setStatus("NOURA ya está en tu pantalla de inicio ✓");});}catch{}
+     },1000);
+     return;
+   }
+   setStatus("Tu versión de Telegram no expone la instalación nativa. Usa Abrir en navegador como alternativa.");
+ }
 
  function openExternal(){
    if(!installUrl)return;
@@ -52,20 +71,24 @@ export default function InstallPage(){
    else window.location.href=installUrl;
  }
 
- const isIOS=typeof navigator!=="undefined"&&/iPhone|iPad|iPod/i.test(navigator.userAgent);
+ const nativeAvailable=insideTelegram&&typeof (window as TelegramWindow).Telegram?.WebApp?.addToHomeScreen==="function";
+ const alreadyAdded=homeStatus==="added";
 
  return <main className="onboarding onboarding-premium">
    <div className="onboarding-glow"/>
    <div className="logo-orb">N</div>
-   <div className="kicker">NOURA / INSTALL</div>
-   <h1>Instala NOURA en tu Home Screen.</h1>
+   <div className="kicker">NOURA / HOME SCREEN</div>
+   <h1>{alreadyAdded?"NOURA ya está instalada.":"Añade NOURA a tu Home Screen."}</h1>
    <p className="muted lead">{status}</p>
 
-   {insideTelegram&&installUrl&&<button className="btn btn-primary btn-large" style={{marginTop:18,maxWidth:420}} onClick={openExternal}>Abrir en navegador →</button>}
+   {nativeAvailable&&!alreadyAdded&&<button className="btn btn-primary btn-large" style={{marginTop:18,maxWidth:420}} onClick={addNativeShortcut}>＋ Añadir NOURA al inicio</button>}
+   {alreadyAdded&&<a className="btn btn-primary btn-large" style={{marginTop:18,maxWidth:420}} href="/">Abrir NOURA →</a>}
+   {!nativeAvailable&&insideTelegram&&installUrl&&<button className="btn btn-primary btn-large" style={{marginTop:18,maxWidth:420}} onClick={openExternal}>Abrir en navegador →</button>}
 
    <div className="card-premium" style={{marginTop:20,maxWidth:560}}>
-     <strong>{isIOS?"En iPhone":"Instalación"}</strong>
-     {isIOS?<p className="muted">1. Toca <b>Abrir en navegador</b>.<br/>2. En Safari toca el botón <b>Compartir</b>.<br/>3. Desliza y elige <b>Añadir a pantalla de inicio</b>.<br/>4. Confirma con <b>Añadir</b>.<br/><br/><b>Importante:</b> esa opción no aparece en el menú Compartir de Telegram.</p>:<p className="muted">Abre NOURA en tu navegador y acepta “Instalar app” o usa el menú del navegador → “Añadir a pantalla de inicio”.</p>}
+     <strong>Instalación nativa de Telegram</strong>
+     <p className="muted">NOURA usa la función oficial de Telegram para crear un acceso directo con el icono del bot. No necesitas usar el menú Compartir de Safari cuando esta función está disponible.</p>
+     <p className="muted" style={{marginTop:12}}>El menú de los tres puntos que muestras es parte de Telegram y no permite que una Mini App agregue opciones personalizadas. Por eso el botón de arriba abre directamente el diálogo nativo equivalente.</p>
    </div>
  </main>;
 }
