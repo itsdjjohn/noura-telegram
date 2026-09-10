@@ -3,16 +3,14 @@
 import { useEffect,useState } from "react";
 import { createInstallLink, exchangeInstallCode } from "@/lib/noura-data";
 
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp?: {
-        initData?: string;
-        openLink?: (url:string)=>void;
-      };
+type TelegramWindow = Window & {
+  Telegram?: {
+    WebApp?: {
+      initData?: string;
+      openLink?: (url:string)=>void;
     };
-  }
-}
+  };
+};
 
 export default function InstallPage(){
  const [status,setStatus]=useState("Preparando NOURA para este dispositivo…");
@@ -31,7 +29,8 @@ export default function InstallPage(){
      return;
    }
 
-   if(window.Telegram?.WebApp?.initData){
+   const tgWindow=window as TelegramWindow;
+   if(tgWindow.Telegram?.WebApp?.initData){
      setInsideTelegram(true);
      try{
        setStatus("Cuenta vinculada. Ahora abre NOURA fuera de Telegram para instalarla.");
@@ -48,7 +47,8 @@ export default function InstallPage(){
 
  function openExternal(){
    if(!installUrl)return;
-   if(window.Telegram?.WebApp?.openLink) window.Telegram.WebApp.openLink(installUrl);
+   const tgWindow=window as TelegramWindow;
+   if(tgWindow.Telegram?.WebApp?.openLink) tgWindow.Telegram.WebApp.openLink(installUrl);
    else window.location.href=installUrl;
  }
 
