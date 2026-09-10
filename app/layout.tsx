@@ -26,6 +26,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="es">
       <body>
+        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
         {children}
         <NouraClient />
         <nav className="noura-launchers" aria-label="Accesos rápidos NOURA">
@@ -34,7 +35,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <a className="insights-launcher" href="/insights"><span>Insights</span></a>
           <a className="insights-launcher profile-launcher" href="/profile"><span>Perfil</span></a>
         </nav>
-        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
       </body>
     </html>
   );
