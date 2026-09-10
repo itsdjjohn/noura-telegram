@@ -9,6 +9,10 @@ import "./navigation.css";
 export const metadata: Metadata = {
   title: "NOURA",
   description: "Nutrition, habits and performance inside Telegram",
+  manifest: "/manifest.webmanifest",
+  applicationName: "NOURA",
+  appleWebApp: { capable: true, title: "NOURA", statusBarStyle: "black-translucent" },
+  icons: { icon: "/noura-icon.svg", apple: "/noura-icon.svg" },
 };
 
 export const viewport: Viewport = {
